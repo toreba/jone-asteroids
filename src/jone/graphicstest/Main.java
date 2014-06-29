@@ -3,21 +3,24 @@ package jone.graphicstest;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Path2D;
 import java.awt.image.BufferStrategy;
+import java.util.Random;
 
 /**
  * Created by Tore on 27.06.2014.
  */
 public class Main {
     private static final int FRAME_DELAY = 20; // 20ms. implies 50fps (1000/20) = 50
-
+    private static final int STARS = 1000;
 
     public static void main(String[] args) {
         JFrame frame = new JFrame();
         Canvas gui = new Canvas();
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.getContentPane().add(gui);
-        frame.setSize(500, 500);
+        frame.setSize(1000, 1000);
         frame.setVisible(true); // start AWT painting.
         Thread gameThread = new Thread(new GameLoop(gui));
         gameThread.setPriority(Thread.MIN_PRIORITY);
@@ -27,12 +30,17 @@ public class Main {
     private static class GameLoop implements Runnable {
 
         boolean isRunning;
-        int x,y;
-        int vx, vy;
+        float x,y;
+        float vx, vy;
+        float rotate;
+
         int width;
         int height;
         Canvas gui;
         long cycleTime;
+        int[] starX = new int[STARS];
+        int[] starY = new int[STARS];
+        Random rnd = new Random();
 
         public GameLoop(Canvas canvas) {
             gui = canvas;
@@ -41,8 +49,14 @@ public class Main {
             height = gui.getHeight();
             x=100;
             y=100;
-            vx = 1;
-            vy = 1;
+            vx = 1.5f;
+            vy = 1.7f;
+
+
+            for(int i = 0; i < STARS; i++) {
+                starX[i] = rnd.nextInt(width);
+                starY[i] = rnd.nextInt(height);
+            }
         }
 
         public void run() {
@@ -70,6 +84,7 @@ public class Main {
             if(y <= 0 || y >= height) {
                 vy = -vy;
             }
+            rotate = rotate +0.05f;
         }
 
         private void updateGUI(BufferStrategy strategy) {
@@ -77,9 +92,28 @@ public class Main {
 
             g.setColor(Color.BLACK);
             g.fillRect(0, 0, gui.getWidth(), gui.getHeight());
-            g.setColor(Color.WHITE);
 
-            g.drawRect(x,y,3,3);
+
+            g.setColor(Color.WHITE);
+            for(int i = 0; i < STARS; i++) {
+                g.drawLine(starX[i],starY[i],starX[i],starY[i]);
+            }
+
+
+
+            //g.drawRect(x,y,3,3);
+
+            Path2D.Float ship = new Path2D.Float();
+            ship.moveTo(0, -8);
+            ship.lineTo(5, 8);
+            ship.lineTo(-5,8);
+            ship.closePath();
+            AffineTransform transform = g.getTransform();
+            g.translate(x,y);
+            g.rotate(rotate);
+            g.setColor(Color.GREEN);
+            g.fill(ship);
+            g.setTransform(transform);
 
             g.dispose();
             strategy.show();
