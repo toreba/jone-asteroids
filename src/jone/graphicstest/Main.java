@@ -27,14 +27,22 @@ public class Main {
     private static class GameLoop implements Runnable {
 
         boolean isRunning;
-        int lineX;
+        int x,y;
+        int vx, vy;
+        int width;
+        int height;
         Canvas gui;
         long cycleTime;
 
         public GameLoop(Canvas canvas) {
             gui = canvas;
             isRunning = true;
-            lineX = 0;
+            width = gui.getWidth();
+            height = gui.getHeight();
+            x=100;
+            y=100;
+            vx = 1;
+            vy = 1;
         }
 
         public void run() {
@@ -54,24 +62,25 @@ public class Main {
         }
 
         private void updateGameState() {
-            lineX++;
+            x = x + vx;
+            y = y + vy;
+            if(x <= 0 || x >= width) {
+                vx = -vx;
+            }
+            if(y <= 0 || y >= height) {
+                vy = -vy;
+            }
         }
 
         private void updateGUI(BufferStrategy strategy) {
-            Graphics g = strategy.getDrawGraphics();
+            Graphics2D g = (Graphics2D) strategy.getDrawGraphics();
 
-            g.setColor(Color.WHITE);
-            g.fillRect(0, 0, gui.getWidth(), gui.getHeight());
             g.setColor(Color.BLACK);
+            g.fillRect(0, 0, gui.getWidth(), gui.getHeight());
+            g.setColor(Color.WHITE);
 
-            for(int i = 0; i<500;i++) {
-                for(int j = 0; j<500;j++) {
-                    g.setColor(new Color(i%256,j%256,(i*j)%256));
-                    g.drawLine(i, j-10, lineX +i, j); // arbitrary rendering logic
-                }
+            g.drawRect(x,y,3,3);
 
-            }
-            g.drawLine(lineX, 0, lineX + 10, 0); // arbitrary rendering logic
             g.dispose();
             strategy.show();
         }
