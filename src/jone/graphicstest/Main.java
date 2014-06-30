@@ -13,8 +13,8 @@ import java.util.Random;
  * Created by Tore on 27.06.2014.
  */
 public class Main {
-    private static final int FRAME_DELAY = 20; // 20ms. implies 50fps (1000/20) = 50
-    private static final int STARS = 1000;
+    private static final int FRAME_DELAY = 16; // 20ms. implies 50fps (1000/20) = 50
+    private static final int STARS = 2000;
 
     public static void main(String[] args) {
         JFrame frame = new JFrame();
@@ -23,6 +23,7 @@ public class Main {
         frame.getContentPane().add(gui);
         frame.setSize(1000, 1000);
         frame.setVisible(true); // start AWT painting.
+        frame.toFront();
         Thread gameThread = new Thread(new GameLoop(gui));
         gameThread.setPriority(Thread.MIN_PRIORITY);
         gameThread.start(); // start Game processing.
@@ -31,8 +32,8 @@ public class Main {
     private static class GameLoop implements Runnable {
         KeyboardInput keyboard = new KeyboardInput();
         boolean isRunning;
-        double x,y;
-        double vx, vy;
+        Vector2D pos;
+        Vector2D velocity;
         double rotate;
 
         int width;
@@ -41,23 +42,25 @@ public class Main {
         long cycleTime;
         int[] starX = new int[STARS];
         int[] starY = new int[STARS];
+        int[] starBlue = new int[STARS];
         Random rnd = new Random();
 
         public GameLoop(Canvas canvas) {
             gui = canvas;
+
             gui.addKeyListener(keyboard);
+            gui.setFocusable(true);
             isRunning = true;
             width = gui.getWidth();
             height = gui.getHeight();
-            x=100;
-            y=100;
-            vx = 1.5f;
-            vy = 1.7f;
-
+            pos = new Vector2D(100,100);
+            velocity = new Vector2D(0,0);
 
             for(int i = 0; i < STARS; i++) {
                 starX[i] = rnd.nextInt(width);
                 starY[i] = rnd.nextInt(height);
+                starBlue[i] = rnd.nextInt(255);
+
             }
 
         }
@@ -79,45 +82,45 @@ public class Main {
         }
 
         private void updateGameState() {
-            x = x + vx;
-            y = y + vy;
-            if(x <= 0) {
-                x = width + x;
+            pos = pos.plus(velocity);
+            if(pos.x <= 0) {
+                pos.x = width + pos.x;
             }
-            if(x >= width) {
-                x = x - width;
+            if(pos.x >= width) {
+                pos.x = pos.x - width;
             }
-            if(y <= 0) {
-                y = y + height;
+            if(pos.y <= 0) {
+                pos.y = pos.y + height;
 
             }
-            if(y >= height) {
-                y = y - height;
+            if(pos.y >= height) {
+                pos.y = pos.y - height;
             }
             keyboard.poll();
             if(keyboard.keyDown(KeyEvent.VK_LEFT)) {
-                rotate = rotate - 0.05f;
+                rotate = rotate - 0.02f;
             }
             if(keyboard.keyDown(KeyEvent.VK_RIGHT)) {
-                rotate = rotate + 0.05f;
+                rotate = rotate + 0.02f;
             }
             if(keyboard.keyDown(KeyEvent.VK_UP)) {
-                double dv = 0.2f;
-                vx=vx + dv * Math.sin(rotate);
-                vy=vy - dv * Math.cos(rotate);
+                velocity = velocity.plus(Vector2D.FromPolar(0.2, rotate));
             }
 
         }
 
         private void updateGUI(BufferStrategy strategy) {
             Graphics2D g = (Graphics2D) strategy.getDrawGraphics();
-
             g.setColor(Color.BLACK);
             g.fillRect(0, 0, gui.getWidth(), gui.getHeight());
 
+            g.translate(0,height/2);
+            g.scale(1,-1);
+            g.translate(0,-height/2);
 
-            g.setColor(Color.WHITE);
+
             for(int i = 0; i < STARS; i++) {
+                g.setColor(new Color(255,255,starBlue[i]));
                 g.drawLine(starX[i],starY[i],starX[i],starY[i]);
             }
 
@@ -126,13 +129,13 @@ public class Main {
             //g.drawRect(x,y,3,3);
 
             Path2D.Double ship = new Path2D.Double();
-            ship.moveTo(0, -8);
-            ship.lineTo(5, 8);
-            ship.lineTo(-5,8);
+            ship.moveTo(0, 8);
+            ship.lineTo(5, -8);
+            ship.lineTo(-5, -8);
             ship.closePath();
             AffineTransform transform = g.getTransform();
-            g.translate(x,y);
-            g.rotate(rotate);
+            g.translate(pos.x,pos.y);
+            g.rotate(-rotate);
             g.setColor(Color.GREEN);
             g.fill(ship);
             g.setTransform(transform);
