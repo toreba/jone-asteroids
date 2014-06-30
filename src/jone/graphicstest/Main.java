@@ -3,6 +3,7 @@ package jone.graphicstest;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
 import java.awt.image.BufferStrategy;
@@ -28,11 +29,11 @@ public class Main {
     }
 
     private static class GameLoop implements Runnable {
-
+        KeyboardInput keyboard = new KeyboardInput();
         boolean isRunning;
-        float x,y;
-        float vx, vy;
-        float rotate;
+        double x,y;
+        double vx, vy;
+        double rotate;
 
         int width;
         int height;
@@ -44,6 +45,7 @@ public class Main {
 
         public GameLoop(Canvas canvas) {
             gui = canvas;
+            gui.addKeyListener(keyboard);
             isRunning = true;
             width = gui.getWidth();
             height = gui.getHeight();
@@ -57,6 +59,7 @@ public class Main {
                 starX[i] = rnd.nextInt(width);
                 starY[i] = rnd.nextInt(height);
             }
+
         }
 
         public void run() {
@@ -78,13 +81,32 @@ public class Main {
         private void updateGameState() {
             x = x + vx;
             y = y + vy;
-            if(x <= 0 || x >= width) {
-                vx = -vx;
+            if(x <= 0) {
+                x = width + x;
             }
-            if(y <= 0 || y >= height) {
-                vy = -vy;
+            if(x >= width) {
+                x = x - width;
             }
-            rotate = rotate +0.05f;
+            if(y <= 0) {
+                y = y + height;
+
+            }
+            if(y >= height) {
+                y = y - height;
+            }
+            keyboard.poll();
+            if(keyboard.keyDown(KeyEvent.VK_LEFT)) {
+                rotate = rotate - 0.05f;
+            }
+            if(keyboard.keyDown(KeyEvent.VK_RIGHT)) {
+                rotate = rotate + 0.05f;
+            }
+            if(keyboard.keyDown(KeyEvent.VK_UP)) {
+                double dv = 0.2f;
+                vx=vx + dv * Math.sin(rotate);
+                vy=vy - dv * Math.cos(rotate);
+            }
+
         }
 
         private void updateGUI(BufferStrategy strategy) {
@@ -103,7 +125,7 @@ public class Main {
 
             //g.drawRect(x,y,3,3);
 
-            Path2D.Float ship = new Path2D.Float();
+            Path2D.Double ship = new Path2D.Double();
             ship.moveTo(0, -8);
             ship.lineTo(5, 8);
             ship.lineTo(-5,8);
