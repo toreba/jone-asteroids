@@ -1,12 +1,13 @@
 package jone.graphicstest;
 
+import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Path2D;
 import java.awt.image.BufferStrategy;
+import java.awt.image.BufferedImage;
 import java.util.Random;
 
 /**
@@ -24,43 +25,40 @@ public class Main {
         frame.setSize(1000, 1000);
         frame.setVisible(true); // start AWT painting.
         frame.toFront();
+        frame.setFocusable(true);
         Thread gameThread = new Thread(new GameLoop(gui));
-        gameThread.setPriority(Thread.MIN_PRIORITY);
+        gameThread.setPriority(Thread.MAX_PRIORITY);
         gameThread.start(); // start Game processing.
     }
 
     private static class GameLoop implements Runnable {
         KeyboardInput keyboard = new KeyboardInput();
         boolean isRunning;
-        Vector2D pos;
-        Vector2D velocity;
-        double rotate;
-
-        int width;
-        int height;
+        World world;
         Canvas gui;
         long cycleTime;
         int[] starX = new int[STARS];
         int[] starY = new int[STARS];
         int[] starBlue = new int[STARS];
         Random rnd = new Random();
+        Ship ship;
+
 
         public GameLoop(Canvas canvas) {
+
             gui = canvas;
 
             gui.addKeyListener(keyboard);
             gui.setFocusable(true);
             isRunning = true;
-            width = gui.getWidth();
-            height = gui.getHeight();
-            pos = new Vector2D(100,100);
-            velocity = new Vector2D(0,0);
-
+            world = new World(gui.getWidth(), gui.getHeight());
+            ship = new Ship(world);
+            world.add(ship);
+            world.add(new Asteroid(world, new Vector2D(500,500), new Vector2D(0.11, 0.23),50));
             for(int i = 0; i < STARS; i++) {
-                starX[i] = rnd.nextInt(width);
-                starY[i] = rnd.nextInt(height);
+                starX[i] = rnd.nextInt(world.width);
+                starY[i] = rnd.nextInt(world.height);
                 starBlue[i] = rnd.nextInt(255);
-
             }
 
         }
@@ -72,51 +70,54 @@ public class Main {
 
             // Game Loop
             while (isRunning) {
-
-                updateGameState();
-
+                long difference;
+                do {
+                    handleInput();
+                    updateGameState();
+                    cycleTime = cycleTime + FRAME_DELAY;
+                    difference = cycleTime - System.currentTimeMillis();
+                } while(difference < 0);
                 updateGUI(strategy);
+                try {
+                    Thread.sleep(Math.max(0, difference));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
 
-                synchFramerate();
             }
         }
 
+        //           \0/
+        //            |
+        //           /\
         private void updateGameState() {
-            pos = pos.plus(velocity);
-            if(pos.x <= 0) {
-                pos.x = width + pos.x;
-            }
-            if(pos.x >= width) {
-                pos.x = pos.x - width;
-            }
-            if(pos.y <= 0) {
-                pos.y = pos.y + height;
-
-            }
-            if(pos.y >= height) {
-                pos.y = pos.y - height;
-            }
-            keyboard.poll();
-            if(keyboard.keyDown(KeyEvent.VK_LEFT)) {
-                rotate = rotate - 0.02f;
-            }
-            if(keyboard.keyDown(KeyEvent.VK_RIGHT)) {
-                rotate = rotate + 0.02f;
-            }
-            if(keyboard.keyDown(KeyEvent.VK_UP)) {
-                velocity = velocity.plus(Vector2D.FromPolar(0.2, rotate));
-            }
-
+            world.update();
         }
 
+        private void handleInput() {
+            keyboard.poll();
+            if (keyboard.keyDown(KeyEvent.VK_LEFT)) {
+                ship.rotateLeft();
+            }
+            if (keyboard.keyDown(KeyEvent.VK_RIGHT)) {
+                ship.rotateRight();
+            }
+            if (keyboard.keyDown(KeyEvent.VK_UP)) {
+                ship.forward();
+            }
+
+            if (keyboard.keyDownOnce(KeyEvent.VK_SPACE)) {
+                ship.shoot();
+            }
+        }
         private void updateGUI(BufferStrategy strategy) {
             Graphics2D g = (Graphics2D) strategy.getDrawGraphics();
             g.setColor(Color.BLACK);
             g.fillRect(0, 0, gui.getWidth(), gui.getHeight());
 
-            g.translate(0,height/2);
-            g.scale(1,-1);
-            g.translate(0,-height/2);
+            //g.translate(0,height/2);
+            //g.scale(1,-1);
+            //g.translate(0,-height/2);
 
 
             for(int i = 0; i < STARS; i++) {
@@ -124,21 +125,7 @@ public class Main {
                 g.drawLine(starX[i],starY[i],starX[i],starY[i]);
             }
 
-
-
-            //g.drawRect(x,y,3,3);
-
-            Path2D.Double ship = new Path2D.Double();
-            ship.moveTo(0, 8);
-            ship.lineTo(5, -8);
-            ship.lineTo(-5, -8);
-            ship.closePath();
-            AffineTransform transform = g.getTransform();
-            g.translate(pos.x,pos.y);
-            g.rotate(-rotate);
-            g.setColor(Color.GREEN);
-            g.fill(ship);
-            g.setTransform(transform);
+            world.render(g);
 
             g.dispose();
             strategy.show();
