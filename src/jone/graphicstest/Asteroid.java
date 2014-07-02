@@ -70,6 +70,7 @@ public class Asteroid extends Sprite {
     @Override
     public void onCollision(Sprite other) {
         if(other instanceof Bullet) {
+            world.asteroidKilled.run();
             if(size > 1) {
                 double angle = velocity.angle() + Math.PI/4;
                 for(int i = 0; i<4; i++) {

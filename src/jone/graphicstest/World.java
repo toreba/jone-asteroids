@@ -13,6 +13,7 @@ public class World {
     Set<Sprite> sprites = new HashSet<Sprite>();
     List<Sprite> deadSprites = new ArrayList<Sprite>();
     Random random = new Random();
+    Runnable asteroidKilled;
 
 
     public World(int width, int height) {
@@ -61,5 +62,9 @@ public class World {
     }
     public double random(double min, double max) {
         return random.nextDouble() * (max - min) + min;
+    }
+
+    public void onAsteroidKilled(Runnable r) {
+        asteroidKilled = r;
     }
 }
