@@ -24,6 +24,7 @@ public class GameLoop implements Runnable {
     Ship ship;
     double secondsSinceLastAsteroid = 1000;
     private int score;
+    private int bulletsShot;
 
 
     public GameLoop(Canvas canvas) {
@@ -96,6 +97,8 @@ public class GameLoop implements Runnable {
 
         if (keyboard.keyDownOnce(KeyEvent.VK_SPACE) || keyboard.keyDownOnce(KeyEvent.VK_DOWN)) {
             ship.shoot();
+            bulletsShot = bulletsShot + 1;
+            score = Math.max(0, score -50);
         }
     }
     private void updateGUI(BufferStrategy strategy) {
@@ -128,7 +131,8 @@ public class GameLoop implements Runnable {
         g.setColor(Color.GREEN);
         g.fillRect(0, 0, world.width, 20);
         g.setColor(Color.BLACK);
-        g.drawString("SCORE: " + score, 50,16);
+        g.drawString("SCORE: " + score, 50, 16);
+        g.drawString("BULLETS SHOT: " + bulletsShot, 299, 16);
     }
 
 }
