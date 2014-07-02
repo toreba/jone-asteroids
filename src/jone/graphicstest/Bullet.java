@@ -27,6 +27,8 @@ public class Bullet extends Sprite {
 
     @Override
     public void onCollision(Sprite other) {
-        //world.remove(this);
+        if(other instanceof Asteroid) {
+            world.remove(this);
+        }
     }
 }

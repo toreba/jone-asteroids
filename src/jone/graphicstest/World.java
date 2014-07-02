@@ -12,6 +12,7 @@ public class World {
     int height;
     Set<Sprite> sprites = new HashSet<Sprite>();
     List<Sprite> deadSprites = new ArrayList<Sprite>();
+    Random random = new Random();
 
 
     public World(int width, int height) {
@@ -53,5 +54,12 @@ public class World {
             }
         }
 
+    }
+
+    public double random() {
+        return random.nextDouble();
+    }
+    public double random(double min, double max) {
+        return random.nextDouble() * (max - min) + min;
     }
 }

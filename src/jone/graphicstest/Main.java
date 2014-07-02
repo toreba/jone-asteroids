@@ -95,8 +95,8 @@ public class Main {
 
             secondsSinceLastAsteroid += deltaTime;
 
-            if(secondsSinceLastAsteroid > 20) {
-                world.add(new Asteroid(world, new Vector2D(500, 500), new Vector2D(20, 30), 50));
+            if(secondsSinceLastAsteroid > 10) {
+                world.add(new Asteroid(world, new Vector2D(500, 500), new Vector2D(40, 30), world.random(-0.5, 0.5), 3));
                 secondsSinceLastAsteroid = 0;
             }
         }
@@ -119,6 +119,9 @@ public class Main {
         }
         private void updateGUI(BufferStrategy strategy) {
             Graphics2D g = (Graphics2D) strategy.getDrawGraphics();
+            //g.setRenderingHint(RenderingHints.KEY_VALUE_TEXT_ANTIALIAS_ON,  RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,  RenderingHints.VALUE_ANTIALIAS_ON);
+            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,  RenderingHints.VALUE_INTERPOLATION_BILINEAR); //VALUE_INTERPOLATION_BICUBIC
 
             g.setColor(Color.BLACK);
             g.fillRect(0, 0, gui.getWidth(), gui.getHeight());
