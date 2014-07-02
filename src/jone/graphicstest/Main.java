@@ -36,12 +36,12 @@ public class Main {
         boolean isRunning;
         World world;
         Canvas gui;
-        long cycleTime;
         int[] starX = new int[STARS];
         int[] starY = new int[STARS];
         int[] starBlue = new int[STARS];
         Random rnd = new Random();
         Ship ship;
+        double secondsSinceLastAsteroid = 1000;
 
 
         public GameLoop(Canvas canvas) {
@@ -54,7 +54,6 @@ public class Main {
             world = new World(gui.getWidth(), gui.getHeight());
             ship = new Ship(world);
             world.add(ship);
-            world.add(new Asteroid(world, new Vector2D(500,500), new Vector2D(0.11, 0.23),50));
             for(int i = 0; i < STARS; i++) {
                 starX[i] = rnd.nextInt(world.width);
                 starY[i] = rnd.nextInt(world.height);
@@ -64,34 +63,42 @@ public class Main {
         }
 
         public void run() {
-            cycleTime = System.currentTimeMillis();
+            long lastTime = System.currentTimeMillis();
             gui.createBufferStrategy(2);
             BufferStrategy strategy = gui.getBufferStrategy();
 
             // Game Loop
             while (isRunning) {
-                long difference;
-                do {
-                    handleInput();
-                    updateGameState();
-                    cycleTime = cycleTime + FRAME_DELAY;
-                    difference = cycleTime - System.currentTimeMillis();
-                } while(difference < 0);
+                handleInput();
+
+                long now = System.currentTimeMillis();
+                long milliseconds = now - lastTime;
+                lastTime = now;
+                double deltaTime = milliseconds /1000.0;
+                updateGameState(deltaTime);
                 updateGUI(strategy);
+
                 try {
-                    Thread.sleep(Math.max(0, difference));
+                    Thread.sleep(Math.max(0, FRAME_DELAY - milliseconds));
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-
             }
         }
 
-        //           \0/
-        //            |
+        //           \0
+        //            |)
         //           /\
-        private void updateGameState() {
-            world.update();
+        private void updateGameState(double deltaTime) {
+            world.collisionDetect();
+            world.update(deltaTime);
+
+            secondsSinceLastAsteroid += deltaTime;
+
+            if(secondsSinceLastAsteroid > 20) {
+                world.add(new Asteroid(world, new Vector2D(500, 500), new Vector2D(20, 30), 50));
+                secondsSinceLastAsteroid = 0;
+            }
         }
 
         private void handleInput() {
@@ -112,6 +119,7 @@ public class Main {
         }
         private void updateGUI(BufferStrategy strategy) {
             Graphics2D g = (Graphics2D) strategy.getDrawGraphics();
+
             g.setColor(Color.BLACK);
             g.fillRect(0, 0, gui.getWidth(), gui.getHeight());
 
@@ -129,16 +137,6 @@ public class Main {
 
             g.dispose();
             strategy.show();
-        }
-
-        private void synchFramerate() {
-            cycleTime = cycleTime + FRAME_DELAY;
-            long difference = cycleTime - System.currentTimeMillis();
-            try {
-                Thread.sleep(Math.max(0, difference));
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
         }
 
     }

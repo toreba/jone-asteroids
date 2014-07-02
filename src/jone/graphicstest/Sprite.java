@@ -9,16 +9,19 @@ public abstract class Sprite {
     Vector2D pos;
     Vector2D velocity;
     double rotate;
+    double radius;
+
     World world;
 
-    public Sprite(World world, Vector2D pos, Vector2D velocity) {
+    public Sprite(World world, Vector2D pos, Vector2D velocity, double radius) {
         this.world = world;
         this.pos = pos;
         this.velocity = velocity;
+        this.radius = radius;
     }
 
-    public void update() {
-        pos = pos.plus(velocity);
+    public void update(double deltaTime) {
+        pos = pos.plus(velocity.mul(deltaTime) );
     }
 
     protected void wrap(double dx, double dy) {
@@ -37,4 +40,14 @@ public abstract class Sprite {
     }
 
     public abstract void render(Graphics2D g);
-}
+
+    public abstract void onCollision(Sprite other);
+
+    public boolean quickCollidesWith(Sprite other) {
+        double dx = other.pos.x - pos.x;
+        double dy = other.pos.y - pos.y;
+
+        double distSq = dx*dx + dy*dy;
+        return distSq < (radius + other.radius) * (radius + other.radius);
+    }
+ }

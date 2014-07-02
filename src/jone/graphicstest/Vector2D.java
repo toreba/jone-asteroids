@@ -35,4 +35,8 @@ public class Vector2D {
         return Math.atan2(x, y);
 
     }
+
+    public Vector2D mul(double scalar) {
+        return new Vector2D(x * scalar, y * scalar);
+    }
 }

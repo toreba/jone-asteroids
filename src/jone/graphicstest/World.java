@@ -19,9 +19,9 @@ public class World {
         this.height = height;
     }
 
-    public void update() {
+    public void update(double deltaTime) {
         for(Sprite sprite: sprites) {
-            sprite.update();
+            sprite.update(deltaTime);
         }
         for(Sprite sprite : deadSprites) {
             sprites.remove(sprite);
@@ -40,5 +40,18 @@ public class World {
 
     public void remove(Sprite sprite) {
         deadSprites.add(sprite);
+    }
+
+    public void collisionDetect() {
+        Sprite[] array = sprites.toArray(new Sprite[sprites.size()]);
+        for(int i = 0; i<array.length; i++) {
+            for(int j = i+1; j<array.length; j++) {
+                if(array[i].quickCollidesWith(array[j])) {
+                    array[i].onCollision(array[j]);
+                    array[j].onCollision(array[i]);
+                }
+            }
+        }
+
     }
 }

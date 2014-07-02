@@ -1,42 +1,34 @@
 package jone.graphicstest;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Created by Tore on 01.07.2014.
+ * Created by Tore on 02.07.2014.
  */
-public class Asteroid extends Sprite {
-    double radius;
-    BufferedImage bufferedImage;
+public class ResourceLoader {
 
-    public Asteroid(World world, Vector2D pos, Vector2D velocity, double radius) {
-        super(world, pos, velocity,80);
-        this.radius = radius;
-        bufferedImage = ResourceLoader.getImage("asteroid1_1.png");
+    private static Map<String, BufferedImage> images = new HashMap<>();
+
+    public static BufferedImage getImage(String name) {
+        BufferedImage img = images.get(name);
+        if(img == null) {
+            try {
+                BufferedImage image = ImageIO.read(ResourceLoader.class.getResource(name));
+                img = toCompatibleImage(image);
+                images.put(name,img);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }
+        return img;
     }
 
-    @Override
-    public void update(double deltaTime) {
-        super.update(deltaTime);
-        rotate += 0.01;
-        wrap(80,80);
-    }
-
-    @Override
-    public void render(Graphics2D g) {
-        AffineTransform transform = g.getTransform();
-        g.translate(pos.x,pos.y);
-        g.rotate(-rotate);
-        g.translate(-80,-80);
-        g.drawImage(bufferedImage, 0, 0, null);
-        g.setTransform(transform);
-
-    }
-
-
-    private BufferedImage toCompatibleImage(BufferedImage image)
+    private static BufferedImage toCompatibleImage(BufferedImage image)
     {
         // obtain the current system graphical settings
         GraphicsConfiguration gfx_config = GraphicsEnvironment.
@@ -65,11 +57,4 @@ public class Asteroid extends Sprite {
         return new_image;
     }
 
-    @Override
-    public void onCollision(Sprite other) {
-        if(other instanceof Bullet) {
-            world.remove(this);
-        }
-    }
 }
-
