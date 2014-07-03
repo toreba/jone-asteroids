@@ -9,11 +9,12 @@ import java.awt.image.BufferedImage;
  */
 public class Ship extends Sprite {
     BufferedImage bufferedImage;
+    private double rotateSpeed;
 
     public Ship(World world) {
-        super(world, new Vector2D(100,100), new Vector2D(0,0),10 );
+        super(world, new Vector2D(world.width/2,world.height/2), new Vector2D(0,0),10 );
         this.world = world;
-        bufferedImage = ResourceLoader.getImage("16.png");
+        bufferedImage = ResourceLoader.getImage("ship.png");
 
     }
 
@@ -31,18 +32,28 @@ public class Ship extends Sprite {
         g.translate(pos.x,pos.y);
         g.rotate(-rotate);
         g.scale(1, -1);
-        g.translate(-17,-18);
+        g.translate(-bufferedImage.getWidth()/2,-bufferedImage.getHeight()/2);
         g.drawImage(bufferedImage, 0, 0, null);
         g.setTransform(transform);
 
     }
 
-    public void rotateLeft() {
-        rotate = rotate + 0.03f;
+    public void rotateLeft(boolean first) {
+        setRotateSpeed(first);
+        rotate = rotate + rotateSpeed;
     }
-    public void rotateRight() {
-        rotate = rotate - 0.03f;
+    public void rotateRight(boolean first) {
+        setRotateSpeed(first);
+        rotate = rotate - rotateSpeed;
     }
+
+    private void setRotateSpeed(boolean first) {
+        if(first) {
+            rotateSpeed = 0.01;
+        }
+        rotateSpeed = Math.min(0.1,rotateSpeed + 0.001);
+    }
+
     public void forward() {
         velocity = velocity.plus(Vector2D.fromPolar(3.6, rotate));
     }
@@ -55,6 +66,8 @@ public class Ship extends Sprite {
 
     @Override
     public void onCollision(Sprite other) {
-
+        if(other instanceof Asteroid || other instanceof  EnemyBullet)  {
+            world.shipKilled.run();
+        }
     }
 }

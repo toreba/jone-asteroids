@@ -12,8 +12,11 @@ public class World {
     int height;
     Set<Sprite> sprites = new HashSet<Sprite>();
     List<Sprite> deadSprites = new ArrayList<Sprite>();
+    List<Sprite> newSprites = new ArrayList<Sprite>();
     Random random = new Random();
     Runnable asteroidKilled;
+    Runnable shipKilled;
+    public Ship ship;
 
 
     public World(int width, int height) {
@@ -22,22 +25,23 @@ public class World {
     }
 
     public void update(double deltaTime) {
-        for(Sprite sprite: sprites) {
+        for (Sprite sprite : sprites) {
             sprite.update(deltaTime);
         }
-        for(Sprite sprite : deadSprites) {
-            sprites.remove(sprite);
-        }
+        sprites.removeAll(deadSprites);
+        sprites.addAll(newSprites);
         deadSprites.clear();
+        newSprites.clear();
     }
 
     public void render(Graphics2D g) {
-        for(Sprite sprite: sprites) {
+        for (Sprite sprite : sprites) {
             sprite.render(g);
         }
     }
+
     public void add(Sprite sprite) {
-        sprites.add(sprite);
+        newSprites.add(sprite);
     }
 
     public void remove(Sprite sprite) {
@@ -46,9 +50,9 @@ public class World {
 
     public void collisionDetect() {
         Sprite[] array = sprites.toArray(new Sprite[sprites.size()]);
-        for(int i = 0; i<array.length; i++) {
-            for(int j = i+1; j<array.length; j++) {
-                if(array[i].quickCollidesWith(array[j])) {
+        for (int i = 0; i < array.length; i++) {
+            for (int j = i + 1; j < array.length; j++) {
+                if (array[i].quickCollidesWith(array[j])) {
                     array[i].onCollision(array[j]);
                     array[j].onCollision(array[i]);
                 }
@@ -60,6 +64,7 @@ public class World {
     public double random() {
         return random.nextDouble();
     }
+
     public double random(double min, double max) {
         return random.nextDouble() * (max - min) + min;
     }
@@ -67,4 +72,14 @@ public class World {
     public void onAsteroidKilled(Runnable r) {
         asteroidKilled = r;
     }
+
+    public void onShipKilled(Runnable r) {
+        shipKilled = r;
+    }
+
+    public void clear() {
+        sprites = new HashSet<Sprite>();
+    }
 }
+
+

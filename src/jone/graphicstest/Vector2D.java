@@ -23,6 +23,9 @@ public class Vector2D {
     public Vector2D plus(Vector2D vec) {
         return new Vector2D(x + vec.x, y + vec.y);
     }
+    public Vector2D minus(Vector2D vec) {
+        return new Vector2D(x - vec.x, y - vec.y);
+    }
 
     public double length() {
         return Math.sqrt(x*x+y*y);

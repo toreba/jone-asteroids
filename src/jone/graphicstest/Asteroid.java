@@ -11,12 +11,16 @@ public class Asteroid extends Sprite {
     private final double rotateSpeed;
     BufferedImage bufferedImage;
     int size;
+    int toughness;
+    int lives;
 
-    public Asteroid(World world, Vector2D pos, Vector2D velocity, double rotateSpeed, int size) {
+    public Asteroid(World world, Vector2D pos, Vector2D velocity, double rotateSpeed, int size, int toughness) {
         super(world, pos, velocity,size==1 ? 20 : size == 2 ? 40 : 80);
         this.size = size;
         this.rotateSpeed = rotateSpeed;
-        bufferedImage = ResourceLoader.getImage("asteroid1_"+size+".png");
+        this.toughness = toughness;
+        this.lives = toughness;
+        bufferedImage = ResourceLoader.getImage("asteroid"+toughness+"_"+size+".png");
     }
 
     @Override
@@ -70,20 +74,27 @@ public class Asteroid extends Sprite {
     @Override
     public void onCollision(Sprite other) {
         if(other instanceof Bullet) {
-            world.asteroidKilled.run();
-            if(size > 1) {
-                double angle = velocity.angle() + Math.PI/4;
-                for(int i = 0; i<4; i++) {
-                    world.add(new Asteroid(world,
-                            pos.plus(Vector2D.fromPolar(radius/2, angle)),
-                            velocity.plus(Vector2D.fromPolar(radius,angle)),
-                            world.random(-1, 1),
-                            size - 1));
-                    angle += Math.PI / 2;
-                }
+            lives = lives -1;
+            if(lives == 0) {
+                die();
             }
-            world.remove(this);
         }
+    }
+
+    private void die() {
+        world.asteroidKilled.run();
+        if (size > 1) {
+            double angle = velocity.angle() + Math.PI / 4;
+            for (int i = 0; i < 4; i++) {
+                world.add(new Asteroid(world,
+                        pos.plus(Vector2D.fromPolar(radius / 2, angle)),
+                        velocity.plus(Vector2D.fromPolar(radius, angle)),
+                        world.random(-1, 1),
+                        size - 1, toughness));
+                angle += Math.PI / 2;
+            }
+        }
+        world.remove(this);
     }
 }
 

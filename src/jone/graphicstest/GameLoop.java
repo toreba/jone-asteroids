@@ -22,9 +22,12 @@ public class GameLoop implements Runnable {
     int[] starBlue = new int[STARS];
     Random rnd = new Random();
     Ship ship;
-    double secondsSinceLastAsteroid = 1000;
+    double secondsSinceLastAsteroid;
     private int score;
     private int bulletsShot;
+    private double timwBetweenAsteroids = 20;
+    private int lives = 5;
+    private int astroidsCreated = 0;
 
 
     public GameLoop(Canvas canvas) {
@@ -34,14 +37,27 @@ public class GameLoop implements Runnable {
         isRunning = true;
         world = new World(gui.getWidth(), gui.getHeight());
         world.onAsteroidKilled(() -> score +=1000);
-        ship = new Ship(world);
-        world.add(ship);
+        world.onShipKilled(this::shipKilled);
+        start();
         for(int i = 0; i < STARS; i++) {
             starX[i] = rnd.nextInt(world.width);
             starY[i] = rnd.nextInt(world.height);
             starBlue[i] = rnd.nextInt(255);
         }
 
+    }
+
+    private void shipKilled() {
+        lives = lives -1;
+        start();
+    }
+
+    private void start() {
+        world.clear();
+        ship = world.ship = new Ship(world);
+        world.add(ship);
+        secondsSinceLastAsteroid = 1000;
+        world.add(new Enemy(world));
     }
 
     public void run() {
@@ -77,19 +93,30 @@ public class GameLoop implements Runnable {
 
         secondsSinceLastAsteroid += deltaTime;
 
-        if(secondsSinceLastAsteroid > 10) {
-            world.add(new Asteroid(world, new Vector2D(500, 500), new Vector2D(40, 30), world.random(-0.5, 0.5), 3));
+        if(secondsSinceLastAsteroid > timwBetweenAsteroids) {
+            Vector2D dist = Vector2D.fromPolar(200, world.random(0, 2 * Math.PI));
+            Vector2D newPos = ship.pos.plus(dist);
+            int toughness = 1;
+            if(astroidsCreated > 4 && world.random() > 0.6) {
+                toughness = 3;
+            }
+            else if(astroidsCreated > 1 &&  world.random() > 0.4) {
+                toughness = 2;
+            }
+            world.add(new Asteroid(world, newPos, dist.mul(world.random(-0.2, -0.02)), world.random(-0.5, 0.5), 3, toughness));
             secondsSinceLastAsteroid = 0;
+            timwBetweenAsteroids = timwBetweenAsteroids -0.6;
+            astroidsCreated = astroidsCreated + 1;
         }
     }
 
     private void handleInput() {
         keyboard.poll();
         if (keyboard.keyDown(KeyEvent.VK_LEFT)) {
-            ship.rotateLeft();
+            ship.rotateLeft(keyboard.keyDownOnce(KeyEvent.VK_LEFT));
         }
         if (keyboard.keyDown(KeyEvent.VK_RIGHT)) {
-            ship.rotateRight();
+            ship.rotateRight(keyboard.keyDownOnce(KeyEvent.VK_RIGHT));
         }
         if (keyboard.keyDown(KeyEvent.VK_UP)) {
             ship.forward();
@@ -133,6 +160,7 @@ public class GameLoop implements Runnable {
         g.setColor(Color.BLACK);
         g.drawString("SCORE: " + score, 50, 16);
         g.drawString("BULLETS SHOT: " + bulletsShot, 299, 16);
+        g.drawString("LIVES: " + lives, 500, 16);
     }
 
 }
