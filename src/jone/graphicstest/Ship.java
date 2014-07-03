@@ -54,6 +54,7 @@ public class Ship extends Sprite {
         rotateSpeed = Math.min(0.1,rotateSpeed + 0.001);
     }
 
+
     public void forward() {
         velocity = velocity.plus(Vector2D.fromPolar(3.6, rotate));
     }

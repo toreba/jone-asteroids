@@ -78,7 +78,9 @@ public class World {
     }
 
     public void clear() {
-        sprites = new HashSet<Sprite>();
+        deadSprites.clear();
+        deadSprites.addAll(sprites);
+        newSprites.clear();
     }
 }
 

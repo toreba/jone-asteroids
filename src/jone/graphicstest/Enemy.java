@@ -24,7 +24,7 @@ public class Enemy extends Sprite {
         wrap(0, 0);
         timeSinceLastShot =  timeSinceLastShot + deltaTime;
         if(timeSinceLastShot > 2) {
-            shoot();
+            shootPerfect();
             timeSinceLastShot =0;
         }
     }
@@ -44,8 +44,34 @@ public class Enemy extends Sprite {
 
     public void shoot() {
         double angle = world.ship.pos.minus(pos).angle();
-        EnemyBullet bullet = new EnemyBullet(world, pos, velocity.plus(Vector2D.fromPolar(200, angle)));
+        EnemyBullet bullet = new EnemyBullet(world, pos, Vector2D.fromPolar(200, angle));
         world.add(bullet);
+
+    }
+
+    public void shootPerfect() {
+        double bulletSpeed = 200;
+        Ship ship = world.ship;
+        double dx = ship.pos.x - pos.x;
+        double dy = ship.pos.y - pos.y;
+        double a = ship.velocity.x * ship.velocity.x + ship.velocity.y * ship.velocity.y -  bulletSpeed * bulletSpeed;
+        double b = 2 * ship.velocity.x * dx + 2* ship.velocity.y * dy;
+        double c = dx * dx + dy * dy;
+        double sq = b*b - 4 * a * c;
+        if(sq >=0 && a!=0) {
+            double t1 = (-b + Math.sqrt(sq))/(2*a);
+            double t2 = (-b - Math.sqrt(sq))/(2*a);
+            double t = Math.max(t1,t2);
+            if(t>0) {
+                Vector2D cross = ship.pos.plus(ship.velocity.mul(t));
+                double angle = cross.minus(pos).angle();
+                EnemyBullet bullet = new EnemyBullet(world, pos, Vector2D.fromPolar(bulletSpeed, angle));
+                world.add(bullet);
+            }
+
+        }
+        else {
+        }
 
     }
 
