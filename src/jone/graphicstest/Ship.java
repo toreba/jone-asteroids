@@ -49,14 +49,16 @@ public class Ship extends Sprite {
 
     private void setRotateSpeed(boolean first) {
         if(first) {
-            rotateSpeed = 0.01;
+            rotateSpeed = 0.02;
         }
-        rotateSpeed = Math.min(0.1,rotateSpeed + 0.001);
+        rotateSpeed = Math.min(0.2,rotateSpeed + 0.002);
+
+
     }
 
 
     public void forward() {
-        velocity = velocity.plus(Vector2D.fromPolar(3.6, rotate));
+        velocity = velocity.plus(Vector2D.fromPolar(7, rotate));
     }
 
     public void shoot() {
