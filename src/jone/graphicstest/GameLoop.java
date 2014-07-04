@@ -170,11 +170,12 @@ public class GameLoop implements Runnable {
             g.setFont(fontBoldLarge);
 
             drawCenteredText(g,  "GAME OVER :-(", 400);
-            drawCenteredText(g,  "press space to restart", 500);
+            drawCenteredText(g,  "press enter to restart", 500);
+            drawCenteredText(g,  "Your score: "+ score, 300);
         });
 
         keyboard.poll();
-        if(keyboard.keyDownOnce(KeyEvent.VK_SPACE)) {
+        if(keyboard.keyDownOnce(KeyEvent.VK_ENTER)) {
             init();
         }
     }
